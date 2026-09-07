@@ -1,0 +1,24 @@
+name: Verify formatting
+
+on:
+  push:
+    branches: main
+    paths-ignore:
+      - 'changelog.d/*'
+      - 'README.md'
+  pull_request:
+    paths-ignore:
+      - 'changelog.d/*'
+      - 'README.md'
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    name: Verify Python formatting
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: astral-sh/ruff-action@v3
+      with:
+        version: "0.16.6"
+        args: "format --check"

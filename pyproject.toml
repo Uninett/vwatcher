@@ -1,0 +1,136 @@
+[build-system]
+requires = ["setuptools>=80.3.1", "wheel", "setuptools_scm[toml]>=8.3.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vwatcher"
+description = "Software version watcher for large backbone networks"
+authors = [{name="Sikt - Norwegian Agency for Shared Services in Education and Research", email="kontakt@sikt.no"}]
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+classifiers = [
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: System :: Networking :: Monitoring",
+]
+dependencies = [
+    "zino>=2.5.1"
+]
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://github.com/Uninett/vwatcher"
+"GitHub" = "https://github.com/Uninett/vwatcher"
+"Changelog" = "https://github.com/Uninett/vwatcher/blob/main/CHANGELOG.md"
+"Documentation" = "https://github.com/Uninett/vwatcher/blob/main/README.md"
+
+[dependency-groups]
+test = [
+    "coverage",
+    "pexpect",
+    "pytest>7",
+    "pytest-asyncio<0.22.0",
+    "pytest-cov",
+    "pytest-timeout",
+    "retry",
+    "snmpsim>=1.0,!=1.1.6,<1.2",
+    "tox",
+]
+maintenance = [
+    "build",
+    "twine",
+    "towncrier",
+]
+dev = [
+    "ruff",
+    "pre-commit",
+    "ipython",
+    {include-group = "maintenance"},
+    {include-group = "test"},
+]
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+platforms = ["any"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["tests*"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["tests/"]
+
+[tool.setuptools_scm]
+write_to = "src/vwatcher/version.py"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["BLE001", "E4", "E7", "E9", "F", "I"]
+fixable = ["I"]
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_also = [
+    # Don't need coverage for ellipsis used for type annotations
+    "\\.\\.\\.",
+    # Don't complain about lines excluded unless type checking
+    "if TYPE_CHECKING:",
+    # We don't need tests to cover unimplementedness
+    "raise NotImplementedError",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["**/vwatcher/version.py"]
+patch = ["subprocess"]
+
+[tool.towncrier]
+directory = "changelog.d"
+filename = "CHANGELOG.md"
+start_string = "<!-- towncrier release notes start -->\n"
+underlines = ["", "", ""]
+title_format = "## [{version}] - {project_date}"
+issue_format = "[#{issue}](https://github.com/Uninett/vwatcher/issues/{issue})"
+wrap = false
+
+[[tool.towncrier.type]]
+directory = "security"
+name = "Security"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "removed"
+name = "Removed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "deprecated"
+name = "Deprecated"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "added"
+name = "Added"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fixed"
+name = "Fixed"
+showcontent = true
