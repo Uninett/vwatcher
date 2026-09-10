@@ -1,0 +1,30 @@
+# Zino's own polling settings
+[polling]
+# The pollfile, shared with Zino
+file = "polldevs.cf"
+# How often to check the pollfile for changes, in minutes
+period = 1
+
+[snmp]
+# Which of Zino's SNMP backends to poll with: "netsnmp" or "pysnmp"
+backend = "netsnmp"
+
+[scheduler]
+# How late a poll may fire before it is skipped instead, in seconds
+misfire_grace_time = 10
+
+[logs]
+# Where the event log, the version baselines and the uptimes live
+directory = "ver-watch/logs"
+
+[detection]
+# How far, in centiseconds, a device's uptime may lag behind the estimate
+# before vwatcher calls it a restart.  The default is five minutes.
+uptime_slop = 30000
+
+[mail]
+# Who the daily report comes from and goes to.
+# No recipient means nothing is sent
+sender = "vwatcher@example.org"
+recipient = ""
+sendmail = "/usr/sbin/sendmail"

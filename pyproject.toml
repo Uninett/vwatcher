@@ -20,9 +20,21 @@ classifiers = [
     "Topic :: System :: Networking :: Monitoring",
 ]
 dependencies = [
-    "zino>=2.5.1"
+    "apscheduler~=3.11",
+    "pydantic>=2.7.0",
+    "tomli; python_version < '3.11'",
+    "zino~=2.5",
 ]
 dynamic = ["version"]
+
+[project.scripts]
+vwatcher = "vwatcher.cli:vwatcher"
+vw-daily = "vwatcher.cli:vw_daily"
+vw-day-report = "vwatcher.cli:vw_day_report"
+vw-month-rst = "vwatcher.cli:vw_month_rst"
+vw-month-upgr = "vwatcher.cli:vw_month_upgr"
+cur-vers = "vwatcher.cli:cur_vers"
+uptimes = "vwatcher.cli:uptimes"
 
 [project.urls]
 "Homepage" = "https://github.com/Uninett/vwatcher"
@@ -33,12 +45,10 @@ dynamic = ["version"]
 [dependency-groups]
 test = [
     "coverage",
-    "pexpect",
     "pytest>7",
     "pytest-asyncio<0.22.0",
     "pytest-cov",
     "pytest-timeout",
-    "retry",
     "snmpsim>=1.0,!=1.1.6,<1.2",
     "tox",
 ]
