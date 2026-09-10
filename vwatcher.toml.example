@@ -20,7 +20,7 @@ directory = "ver-watch/logs"
 [detection]
 # How far, in centiseconds, a device's uptime may lag behind the estimate
 # before vwatcher calls it a restart.  The default is five minutes.
-uptime_slop = 30000
+allowed_offset = 30000
 
 [mail]
 # Who the daily report comes from and goes to.

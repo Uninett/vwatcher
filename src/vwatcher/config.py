@@ -13,14 +13,15 @@ except ImportError:  # Python < 3.11
     from tomli import TOMLDecodeError, load
 
 LOG_DIRECTORY = "ver-watch/logs"
-#: How far a device's uptime may lag the estimate, in centiseconds, before it counts as a restart
-UPTIME_SLOP = 100 * 60 * 5
+#: How far a device's uptime may lag the estimate before it counts as a restart,
+#: in centiseconds: five minutes
+ALLOWED_OFFSET = 5 * 60 * 100
 
 
 class Detection(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    uptime_slop: int = UPTIME_SLOP
+    allowed_offset: int = ALLOWED_OFFSET
 
 
 class Logs(BaseModel):

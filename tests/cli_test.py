@@ -114,12 +114,12 @@ class TestLoadConfig:
 
     def test_should_name_the_offending_toml_setting(self, tmp_path, caplog):
         path = tmp_path / "vwatcher.toml"
-        path.write_text("[detection]\nuptime_slop = 'not a number'\n")
+        path.write_text("[detection]\nallowed_offset = 'not a number'\n")
 
         with pytest.raises(SystemExit):
             cli.cur_vers(["--config-file", str(path)])
 
-        assert "detection.uptime_slop" in caplog.text
+        assert "detection.allowed_offset" in caplog.text
 
 
 class TestVwatcherDaemon:

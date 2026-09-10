@@ -18,7 +18,7 @@ from typing import Optional
 from zino.config.models import PollDevice
 
 from vwatcher.collect.snmp import SnmpError, SnmpSession, SystemInfo
-from vwatcher.config import UPTIME_SLOP
+from vwatcher.config import ALLOWED_OFFSET
 from vwatcher.store import LogTree, eventlog
 
 _logger = logging.getLogger(__name__)
@@ -50,14 +50,14 @@ class VersionTask:
         state: defaultdict[str, DeviceState],
         tree: LogTree,
         snmp: SnmpSession,
-        uptime_slop: int = UPTIME_SLOP,
+        allowed_offset: int = ALLOWED_OFFSET,
         clock=time.time,
     ):
         self.device = device
         self.state = state
         self.tree = tree
         self.snmp = snmp
-        self.uptime_slop = uptime_slop
+        self.allowed_offset = allowed_offset
         self.clock = clock
 
     @property
@@ -97,7 +97,7 @@ class VersionTask:
             return False
 
         estimated = device_state.uptime + TICKS_PER_SECOND * int(now - device_state.last_poll)
-        if estimated > COUNTER32_MAX - self.uptime_slop:
+        if estimated > COUNTER32_MAX - self.allowed_offset:
             # The counter has wrapped, or is about to: we cannot tell a restart
             # from a wraparound, so assume the device stayed up.
             self.tree.log.write(
@@ -108,7 +108,7 @@ class VersionTask:
 
         if device_state.uptime == 0:
             return False
-        return uptime >= estimated - self.uptime_slop
+        return uptime >= estimated - self.allowed_offset
 
     def _boot_time(self, uptime: int, now: float) -> str:
         return eventlog.format_timestamp(datetime.fromtimestamp(int(now) - uptime // TICKS_PER_SECOND))

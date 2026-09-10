@@ -76,25 +76,25 @@ class TestSubsequentPolls:
 
         assert [entry.event for entry in events(log_tree)][-4:] == [RELOADED, UPTIME, SOFTWARE, RESTART_REASON]
 
-    async def test_when_uptime_lags_within_the_slop_then_no_restart_should_be_logged(
+    async def test_when_uptime_lags_within_the_allowed_offset_then_no_restart_should_be_logged(
         self, task, log_tree, session, clock
     ):
         await task.run()
         logged = len(events(log_tree))
 
         clock.advance(600)
-        session.uptime += 600 * TICKS_PER_SECOND - task.uptime_slop
+        session.uptime += 600 * TICKS_PER_SECOND - task.allowed_offset
         await task.run()
 
         assert len(events(log_tree)) == logged
 
-    async def test_when_uptime_lags_beyond_the_slop_then_a_restart_should_be_logged(
+    async def test_when_uptime_lags_beyond_the_allowed_offset_then_a_restart_should_be_logged(
         self, task, log_tree, session, clock
     ):
         await task.run()
 
         clock.advance(600)
-        session.uptime += 600 * TICKS_PER_SECOND - task.uptime_slop - 1
+        session.uptime += 600 * TICKS_PER_SECOND - task.allowed_offset - 1
         await task.run()
 
         assert len(events(log_tree, RELOADED)) == 2
@@ -146,13 +146,13 @@ class TestSubsequentPolls:
 class TestCounterWraparound:
     async def test_should_not_be_reported_as_a_restart(self, task, log_tree, session, clock):
         await task.run()
-        session.uptime = COUNTER32_MAX - task.uptime_slop
+        session.uptime = COUNTER32_MAX - task.allowed_offset
         clock.advance(60)
         session.uptime += 60 * TICKS_PER_SECOND
         await task.run()
         reloads = len(events(log_tree, RELOADED))
 
-        # The counter is now within the slop of wrapping, and does wrap
+        # The counter is now within the allowed offset of wrapping, and does wrap
         clock.advance(60)
         session.uptime = 60 * TICKS_PER_SECOND
         await task.run()
@@ -160,7 +160,7 @@ class TestCounterWraparound:
         assert len(events(log_tree, RELOADED)) == reloads
 
     async def test_should_be_noted_in_the_log(self, task, log_tree, state, device, session, clock):
-        state[device.name].uptime = COUNTER32_MAX - task.uptime_slop
+        state[device.name].uptime = COUNTER32_MAX - task.allowed_offset
         state[device.name].last_poll = clock()
         clock.advance(60)
 

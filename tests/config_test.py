@@ -20,7 +20,7 @@ class TestReadConfiguration:
         config = read_configuration(path)
 
         assert config == Configuration()
-        assert config.detection.uptime_slop == 100 * 60 * 5
+        assert config.detection.allowed_offset == 5 * 60 * 100
 
     def test_should_default_to_the_snmp_backend_zino_defaults_to(self, tmp_path):
         path = tmp_path / "vwatcher.toml"
@@ -41,7 +41,7 @@ class TestReadConfiguration:
 
     def test_when_a_key_is_misspelled_then_it_should_raise(self, tmp_path):
         path = tmp_path / "vwatcher.toml"
-        path.write_text("[detection]\nuptime_slopp = 10\n")
+        path.write_text("[detection]\nallowed_offsett = 10\n")
 
         with pytest.raises(ValidationError) as excinfo:
             read_configuration(path)

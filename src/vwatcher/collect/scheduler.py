@@ -158,7 +158,7 @@ class Poller:
             state=self.state,
             tree=self.tree,
             snmp=self.sessions[name],
-            uptime_slop=self.config.detection.uptime_slop,
+            allowed_offset=self.config.detection.allowed_offset,
         )
         await task.run()
 
