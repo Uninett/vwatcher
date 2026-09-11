@@ -53,13 +53,13 @@ class TestNormalizeDescr:
 class TestEventLogWrite:
     def test_should_write_one_line_per_event(self, tmp_path, clock):
         log = EventLog(tmp_path / "ver-watch.log", clock=clock)
-        log.event("example-gw", RELOADED, TIMESTAMP)
+        log.write_event("example-gw", RELOADED, TIMESTAMP)
 
         assert log.path.read_text() == f"{TIMESTAMP}  example-gw {RELOADED}: {TIMESTAMP}\n"
 
     def test_should_fence_a_multi_line_value(self, tmp_path, clock):
         log = EventLog(tmp_path / "ver-watch.log", clock=clock)
-        log.event("example-gw", SOFTWARE, "first line\nsecond line")
+        log.write_event("example-gw", SOFTWARE, "first line\nsecond line")
 
         assert log.path.read_text() == (f"{TIMESTAMP}  example-gw {SOFTWARE}: #\nfirst line\nsecond line\n#\n")
 
@@ -80,7 +80,7 @@ class TestEventLogWrite:
 class TestEventLogRead:
     def test_should_read_back_what_it_wrote(self, tmp_path, clock):
         log = EventLog(tmp_path / "ver-watch.log", clock=clock)
-        log.event("example-gw", SOFTWARE, "IOS one\nIOS two")
+        log.write_event("example-gw", SOFTWARE, "IOS one\nIOS two")
 
         entry = next(iter(log.entries()))
         assert entry.device == "example-gw"

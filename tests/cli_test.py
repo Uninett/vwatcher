@@ -22,7 +22,7 @@ def busy_day(log_tree, clock):
     """A day in which one device was upgraded"""
     log_tree.save_descr("example-gw", CISCO_DESCR)
     log_tree.save_uptime("example-gw", 360000)
-    log_tree.log.event("example-gw", SOFTWARE, CISCO_DESCR_UPGRADED)
+    log_tree.log.write_event("example-gw", SOFTWARE, CISCO_DESCR_UPGRADED)
     return log_tree
 
 

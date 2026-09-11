@@ -77,8 +77,8 @@ class VersionTask:
         now = self.clock()
         system = None
         if not self._uptime_is_expected(uptime, device_state, now):
-            self.tree.log.event(name, eventlog.RELOADED, self._boot_time(uptime, now))
-            self.tree.log.event(name, eventlog.UPTIME, str(uptime))
+            self.tree.log.write_event(name, eventlog.RELOADED, self._boot_time(uptime, now))
+            self.tree.log.write_event(name, eventlog.UPTIME, str(uptime))
             system = await self._log_software()
 
         device_state.uptime = uptime
@@ -125,7 +125,7 @@ class VersionTask:
             self.tree.log.write(name, f"poll returned {error}")
             return None
 
-        self.tree.log.event(name, eventlog.SOFTWARE, eventlog.normalize_descr(system.descr))
+        self.tree.log.write_event(name, eventlog.SOFTWARE, eventlog.normalize_descr(system.descr))
         if system.is_cisco:
             await self._log_restart_reason()
         return system
@@ -137,7 +137,7 @@ class VersionTask:
         except SnmpError as error:
             self.tree.log.write(name, f"whyReload poll returned {error}")
             return
-        self.tree.log.event(name, eventlog.RESTART_REASON, eventlog.normalize_descr(reason))
+        self.tree.log.write_event(name, eventlog.RESTART_REASON, eventlog.normalize_descr(reason))
 
     async def _save_baseline_descr(self, system: Optional[SystemInfo] = None) -> None:
         """

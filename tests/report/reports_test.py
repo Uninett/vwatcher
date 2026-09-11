@@ -288,7 +288,7 @@ class TestCurrentVersions:
 
     def test_should_prefer_a_version_logged_today(self, log_tree):
         log_tree.save_descr("example-gw", CISCO_DESCR)
-        log_tree.log.event("example-gw", SOFTWARE, CISCO_DESCR_UPGRADED)
+        log_tree.log.write_event("example-gw", SOFTWARE, CISCO_DESCR_UPGRADED)
 
         assert "15.2(4)S8" in current_versions(log_tree)
 
@@ -342,7 +342,7 @@ class TestRotateAndReport:
     def test_should_rotate_the_day_away_and_report_on_it(self, log_tree, clock):
         log_tree.save_descr("example-gw", CISCO_DESCR)
         for item in restart(reason="watchdog timeout", when=datetime.fromtimestamp(clock())):
-            log_tree.log.event(item.device, item.event, item.value)
+            log_tree.log.write_event(item.device, item.event, item.value)
 
         report = rotate_and_report(log_tree, datetime.fromtimestamp(clock()).date())
 

@@ -133,12 +133,10 @@ class EventLog:
         with open(self.path, "a") as log:
             log.write(message + "\n")
 
-    def event(self, device: str, event: str, value: str) -> None:
-        """Append one of the `EVENTS` the reports read, f.ex `reloaded`"""
+    def write_event(self, device: str, event: str, value: str) -> None:
         self.write(f"{device} {event}", value)
 
     def entries(self) -> Iterator[LogEntry]:
-        """Read the log back, as the reports do, skipping what they ignore"""
         if not self.path.exists():
             return
         with open(self.path, "r", errors="replace") as log:
