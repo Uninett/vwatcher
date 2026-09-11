@@ -22,7 +22,6 @@ classifiers = [
 dependencies = [
     "apscheduler~=3.11",
     "pydantic>=2.7.0",
-    "tomli; python_version < '3.11'",
     "zino~=2.5",
 ]
 dynamic = ["version"]

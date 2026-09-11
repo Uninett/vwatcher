@@ -1,16 +1,12 @@
 """Covers vwatcher configuration models, and reading them from `vwatcher.toml`"""
 
 from pathlib import Path
+from tomllib import TOMLDecodeError, load
 from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict
 from zino.config import InvalidConfigurationError
 from zino.config.models import Polling
-
-try:
-    from tomllib import TOMLDecodeError, load
-except ImportError:  # Python < 3.11
-    from tomli import TOMLDecodeError, load
 
 LOG_DIRECTORY = "ver-watch/logs"
 # How far a device's uptime may lag the estimate before it counts as a restart.
