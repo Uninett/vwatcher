@@ -34,7 +34,7 @@ class LogEntry:
     value: str
 
 
-def format_timestamp(when: datetime) -> str:
+def format_timestamp(timestamp: datetime) -> str:
     """
     Format a naive local timestamp the way the log spells it.
 

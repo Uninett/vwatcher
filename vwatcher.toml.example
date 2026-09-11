@@ -1,16 +1,20 @@
 # Zino's own polling settings
 [polling]
-# The pollfile, shared with Zino
+# Path to a pollfile, the list of routers to monitor and related configuration, shared with Zino
+# default "polldevs.cf"
 file = "polldevs.cf"
-# How often to check the pollfile for changes, in minutes
+# How often the pollfile is checked for changes, in minutes
+# default 1 min
 period = 1
 
 [snmp]
-# Which of Zino's SNMP backends to poll with: "netsnmp" or "pysnmp"
+# Zino supports two SNMP back-ends: "netsnmp" and "pysnmp".  The default is "netsnmp" (which requires the Net-SNMP C
+# library to be installed on your system).  "pysnmp" selects the pure Python library PySNMP, which is less performant.
 backend = "netsnmp"
 
 [scheduler]
 # How late a poll may fire before it is skipped instead, in seconds
+# default 10 s
 misfire_grace_time = 10
 
 [logs]
@@ -19,7 +23,8 @@ directory = "ver-watch/logs"
 
 [detection]
 # How far, in centiseconds, a device's uptime may lag behind the estimate
-# before vwatcher calls it a restart.  The default is five minutes.
+# before vwatcher calls it a restart
+# default 5 minutes
 allowed_offset = 30000
 
 [mail]
