@@ -28,7 +28,7 @@ CISCO_RULES = _rules(
     (r".*Cisco Catalyst Operating.*, Version (\d+.\d+\(\d+\)).*", r"Cisco CatOS \1"),
 )
 
-#: Matched in order; group 1 is the platform, group 2 the JUNOS version
+# Matched in order; group 1 is the platform, group 2 the JUNOS version
 JUNOS_PATTERNS = (
     re.compile(r"Juniper Networks, Inc\. \S+ \[([^ ]+)\] .* kernel JUNOS ([^ ,]+)[, ].*"),
     re.compile(r"Juniper Networks, Inc\. ([^ ]+) .*kernel JUNOS ([^ ,]+)[, ].*"),
@@ -99,8 +99,8 @@ def split_pretty(descr: str) -> tuple[str, str]:
 
 CISCO_VERSION = re.compile(r"(\d+)\.(\d+)\(([^)]+)\)([A-Z]*)(\d*)")
 
-#: Release type (taken from the `type` group where it is None), the amount a
-#: service release outranks a plain minor revision by, and the pattern
+# Release type (taken from the `type` group where it is None), the amount a
+# service release outranks a plain minor revision by, and the pattern
 JUNOS_VERSIONS = (
     # 20.4X75-D30.6
     ("X", 0, re.compile(r"(?P<major>\d+)\.(?P<minor>\d+)X(?P<revision>\d+)-D(?P<service>\d+)\.(?P<sub>\d+)")),
@@ -110,7 +110,7 @@ JUNOS_VERSIONS = (
     (None, 0, re.compile(r"(?P<major>\d+)\.(?P<minor>\d+)(?P<type>[FRS])(?P<revision>\d+)\.(?P<minor_revision>\d+)")),
 )
 
-#: Same shape for every family, so that keys stay comparable
+# Same shape for every family, so that keys stay comparable
 VersionFields = tuple[float, float, str, float, float]
 
 

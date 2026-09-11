@@ -23,7 +23,7 @@ from vwatcher.store import LogTree, eventlog
 
 _logger = logging.getLogger(__name__)
 
-#: sysUpTime is a 32-bit centisecond counter, and wraps after ~497 days
+# sysUpTime is a 32-bit centisecond counter, and wraps after ~497 days
 COUNTER32_MAX = 0xFFFFFFFF
 TICKS_PER_SECOND = 100
 

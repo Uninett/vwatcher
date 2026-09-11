@@ -13,7 +13,7 @@ from zino.snmp.base import SnmpError as ZinoSnmpError
 if TYPE_CHECKING:
     from zino.snmp.pysnmp_backend import SNMP
 
-#: Cisco's arc of the enterprises tree, which its `sysObjectID` starts with
+# Cisco's arc of the enterprises tree, which its `sysObjectID` starts with
 CISCO_ENTERPRISE = OID(".1.3.6.1.4.1.9")
 
 
