@@ -42,8 +42,8 @@ def format_timestamp(timestamp: datetime) -> str:
     change how the log reads.
     """
     return (
-        f"{DAY_NAMES[when.weekday()]} {MONTH_NAMES[when.month - 1]} {when.day:02d} "
-        f"{when.hour:02d}:{when.minute:02d}:{when.second:02d} {when.year}"
+        f"{DAY_NAMES[timestamp.weekday()]} {MONTH_NAMES[timestamp.month - 1]} {timestamp.day:02d} "
+        f"{timestamp.hour:02d}:{timestamp.minute:02d}:{timestamp.second:02d} {timestamp.year}"
     )
 
 
