@@ -1,14 +1,6 @@
-"""Reading and writing `ver-watch.log`.
+"""Reading and writing `ver-watch.log`"""
 
-Each event is one line, and a multi-line value (a wrapped `sysDescr`) is
-written between `#` sentinels:
-
-    Thu Sep 04 09:45:01 2026  example-gw reloaded: Thu Sep 04 09:12:33 2026
-
-Timestamps are naive local time, formatted without the C locale so that the log
-reads the same however the daemon was started.
-"""
-
+import logging
 import re
 import time
 from dataclasses import dataclass
@@ -20,7 +12,9 @@ DAY_NAMES = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 MONTH_NAMES = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 MONTH_NUMBERS = {name: number for number, name in enumerate(MONTH_NAMES, start=1)}
 
-#: The events the reports care about.  Anything else in the log is diagnostics.
+_logger = logging.getLogger(__name__)
+
+# The events the reports care about.  Anything else in the log is diagnostics.
 RELOADED = "reloaded"
 UPTIME = "uptime"
 SOFTWARE = "software"
@@ -41,6 +35,12 @@ class LogEntry:
 
 
 def format_timestamp(when: datetime) -> str:
+    """
+    Format a naive local timestamp the way the log spells it.
+
+    Built by hand rather than with `strftime`, so that the C locale cannot
+    change how the log reads.
+    """
     return (
         f"{DAY_NAMES[when.weekday()]} {MONTH_NAMES[when.month - 1]} {when.day:02d} "
         f"{when.hour:02d}:{when.minute:02d}:{when.second:02d} {when.year}"
@@ -48,28 +48,42 @@ def format_timestamp(when: datetime) -> str:
 
 
 def parse_timestamp(value: str) -> Optional[datetime]:
-    """Parse a log timestamp, ignoring any time zone in it.
+    """
+    Parse a log timestamp, ignoring any time zone in it.
 
     Accepts both `Thu Sep 04 09:45:01 2026` and the older
     `Mon Jul 19 12:40:53 MET DST 1996`, which is what `unctime.pl` did.
+    Returns None for anything it cannot read as a date.
     """
     fields = value.split()
     if len(fields) < 5 or fields[1] not in MONTH_NUMBERS:
         return None
     try:
         hour, minute, second = (int(part) for part in fields[3].split(":"))
-        return datetime(int(fields[-1]), MONTH_NUMBERS[fields[1]], int(fields[2]), hour, minute, second)
+        return datetime(
+            year=int(fields[-1]),
+            month=MONTH_NUMBERS[fields[1]],
+            day=int(fields[2]),
+            hour=hour,
+            minute=minute,
+            second=second,
+        )
     except ValueError:
         return None
 
 
 def normalize_descr(value: str) -> str:
-    """Clean up a device string so two sightings of one version compare equal."""
+    """Clean up a device string so two sightings of one version compare equal"""
     return value.replace("\r", "").strip("\n")
 
 
 def parse_log(lines: Iterable[str]) -> Iterator[LogEntry]:
-    """Parse an event log, yielding the recognized events and skipping noise."""
+    """
+    Parse an event log, yielding the recognized events and skipping noise.
+
+    An entry whose timestamp will not parse is still yielded, so that the
+    version it reports is not lost.
+    """
     lines = iter(lines)
     for line in lines:
         if not (match := _LINE.match(line.rstrip("\n"))):
@@ -77,8 +91,11 @@ def parse_log(lines: Iterable[str]) -> Iterator[LogEntry]:
         value = match.group("value")
         if value == MULTILINE_MARKER:
             value = "\n".join(_read_block(lines))
+        timestamp = parse_timestamp(match.group("timestamp"))
+        if timestamp is None:
+            _logger.warning("Unreadable timestamp in %s: %r", match.group("device"), match.group("timestamp"))
         yield LogEntry(
-            timestamp=parse_timestamp(match.group("timestamp")),
+            timestamp=timestamp,
             device=match.group("device"),
             event=match.group("event"),
             value=normalize_descr(value),
@@ -94,9 +111,10 @@ def _read_block(lines: Iterator[str]) -> Iterator[str]:
 
 
 class EventLog:
-    """Append events to `ver-watch.log`.
+    """
+    Append events to `ver-watch.log`.
 
-    The file is opened per message, as the Tcl original did, so that rotation
+    The file is opened per message, so that rotation
     needs no cooperation from the running daemon.
     """
 
@@ -116,9 +134,11 @@ class EventLog:
             log.write(message + "\n")
 
     def event(self, device: str, event: str, value: str) -> None:
+        """Append one of the `EVENTS` the reports read, f.ex `reloaded`"""
         self.write(f"{device} {event}", value)
 
     def entries(self) -> Iterator[LogEntry]:
+        """Read the log back, as the reports do, skipping what they ignore"""
         if not self.path.exists():
             return
         with open(self.path, "r", errors="replace") as log:

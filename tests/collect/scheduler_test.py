@@ -1,6 +1,7 @@
 """Tests for pollfile loading and poll scheduling"""
 
 import os
+from datetime import datetime
 from types import SimpleNamespace
 
 import pytest
@@ -194,8 +195,8 @@ class TestRun:
             await poller.run()
 
         assert scheduler.started
-        assert RELOAD_JOB_ID in scheduler.jobs
-        assert "example-gw" in scheduler.jobs
+        # Due at once, so its first run reads the pollfile and schedules the devices
+        assert scheduler.jobs[RELOAD_JOB_ID].next_run_time <= datetime.now()
 
 
 class TestScheduler:

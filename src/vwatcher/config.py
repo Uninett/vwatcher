@@ -13,8 +13,9 @@ except ImportError:  # Python < 3.11
     from tomli import TOMLDecodeError, load
 
 LOG_DIRECTORY = "ver-watch/logs"
-#: How far a device's uptime may lag the estimate before it counts as a restart,
-#: in centiseconds: five minutes
+# How far a device's uptime may lag the estimate before it counts as a restart.
+# Called uptime_slop in legacy zino.
+# Five minutes in centiseconds.
 ALLOWED_OFFSET = 5 * 60 * 100
 
 

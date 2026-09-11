@@ -65,11 +65,11 @@ class Poller:
     async def run(self) -> None:
         """Start polling, and continue doing so until cancelled"""
         self.tree.ensure()
-        self.reload_polldevs()
         self.scheduler.add_job(
             func=self.reload_polldevs,
             trigger="interval",
             minutes=self.config.polling.period,
+            next_run_time=datetime.now(),
             id=RELOAD_JOB_ID,
             name=RELOAD_JOB_ID,
         )
