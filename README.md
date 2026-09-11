@@ -2,11 +2,9 @@
 [![build badge](https://img.shields.io/github/actions/workflow/status/Uninett/vwatcher/tests.yml?branch=main)](https://github.com/Uninett/vwatcher/actions)
 [![codecov badge](https://codecov.io/gh/Uninett/vwatcher/branch/main/graph/badge.svg)](https://codecov.io/gh/Uninett/vwatcher)
 [![Code style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-31021/)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-31116/)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-31214/)
-[![Python 3.11](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-31315/)
-[![Python 3.12](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/downloads/release/python-3147/)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-31315/)
 
 This is the modern Python re-implementation of the software version watcher (vwatcher),
 first implemented in Tcl/Scotty and Perl at Uninett in the 1990s.
