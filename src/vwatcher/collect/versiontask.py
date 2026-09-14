@@ -148,7 +148,7 @@ class VersionTask:
         a restart made us ask, so that we do not ask twice.
         """
         name = self.device.name
-        if self.tree.has_descr(name):
+        if self.tree.has_baseline_version(name):
             return
         if system is None:
             try:
@@ -156,4 +156,4 @@ class VersionTask:
             except SnmpError as error:
                 _logger.debug("%s baseline descr poll failed: %s", name, error)
                 return
-        self.tree.save_descr(name, system.descr)
+        self.tree.save_version(name, system.descr)

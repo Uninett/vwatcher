@@ -64,7 +64,7 @@ class Poller:
 
     async def run(self) -> None:
         """Start polling, and continue doing so until cancelled"""
-        self.tree.ensure()
+        self.tree.ensure_today()
         self.scheduler.add_job(
             func=self.reload_polldevs,
             trigger="interval",
@@ -88,7 +88,7 @@ class Poller:
         :return: The new, deleted and changed device names, and the pollfile's
             defaults.  All four are empty if nothing was read.
         """
-        nothing: tuple[set[str], set[str], set[str], dict] = (set(), set(), set(), {})
+        nothing: tuple[set(), set(), set(), dict] = (set(), set(), set(), {})
         try:
             mtime = Path(self.config.polling.file).stat().st_mtime
         except OSError as error:

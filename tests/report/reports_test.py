@@ -282,19 +282,19 @@ class TestMonthRestartReport:
 
 class TestCurrentVersions:
     def test_should_report_todays_baseline(self, log_tree):
-        log_tree.save_descr("example-gw", CISCO_DESCR)
+        log_tree.save_version("example-gw", CISCO_DESCR)
 
         assert current_versions(log_tree) == f"{'example-gw':<25} Cisco-IOS 15.2(4)S7 C7200-ADVENTERPRISEK9-M\n"
 
     def test_should_prefer_a_version_logged_today(self, log_tree):
-        log_tree.save_descr("example-gw", CISCO_DESCR)
+        log_tree.save_version("example-gw", CISCO_DESCR)
         log_tree.log.write_event("example-gw", SOFTWARE, CISCO_DESCR_UPGRADED)
 
         assert "15.2(4)S8" in current_versions(log_tree)
 
     def test_should_order_by_version(self, log_tree):
-        log_tree.save_descr("gw-new", CISCO_DESCR_UPGRADED)
-        log_tree.save_descr("gw-old", CISCO_DESCR)
+        log_tree.save_version("gw-new", CISCO_DESCR_UPGRADED)
+        log_tree.save_version("gw-old", CISCO_DESCR)
         report = current_versions(log_tree)
 
         assert report.index("gw-old") < report.index("gw-new")
@@ -302,21 +302,21 @@ class TestCurrentVersions:
 
 class TestUptimeReport:
     def test_should_report_the_version_and_the_uptime(self, log_tree):
-        log_tree.save_descr("example-gw", CISCO_DESCR)
+        log_tree.save_version("example-gw", CISCO_DESCR)
         log_tree.save_uptime("example-gw", 8640000)
 
         name, descr, uptime = "example-gw", "Cisco-IOS 15.2(4)S7 C7200-ADVENTERPR", "1d  0:00:00.00"
         assert uptime_report(log_tree) == f"{name:<25} {descr:<36} {uptime:>16}\n"
 
     def test_when_an_uptime_is_unknown_then_it_should_be_left_blank(self, log_tree):
-        log_tree.save_descr("example-gw", CISCO_DESCR)
+        log_tree.save_version("example-gw", CISCO_DESCR)
 
         assert uptime_report(log_tree).rstrip().endswith("C7200-ADVENTERPR")
 
     def test_should_be_orderable_by_uptime(self, log_tree):
-        log_tree.save_descr("gw-old", CISCO_DESCR)
+        log_tree.save_version("gw-old", CISCO_DESCR)
         log_tree.save_uptime("gw-old", 8640000)
-        log_tree.save_descr("gw-new", CISCO_DESCR_UPGRADED)
+        log_tree.save_version("gw-new", CISCO_DESCR_UPGRADED)
         log_tree.save_uptime("gw-new", 100)
         report = uptime_report(log_tree, by_uptime=True)
 
@@ -340,7 +340,7 @@ class TestFormatUptime:
 
 class TestRotateAndReport:
     def test_should_rotate_the_day_away_and_report_on_it(self, log_tree, clock):
-        log_tree.save_descr("example-gw", CISCO_DESCR)
+        log_tree.save_version("example-gw", CISCO_DESCR)
         for item in restart(reason="watchdog timeout", when=datetime.fromtimestamp(clock())):
             log_tree.log.write_event(item.device, item.event, item.value)
 

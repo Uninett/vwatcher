@@ -115,7 +115,7 @@ class Replay:
         Format and clear the upgrades seen so far, then update the baseline.
 
         This is how the monthly report attributes each upgrade to its own day,
-        with `label` as the report's first column, f.ex. `Sep 04`.
+        with `label` as the report's first column, e.g. `Sep 04`.
         """
         lines = []
         for device in self.sorted_devices():
@@ -177,7 +177,7 @@ def format_uptime(centiseconds: Optional[int]) -> str:
 
 
 def day_report(tree: LogTree, month: str, day: str) -> str:
-    """Report on one rotated day, f.ex. `day_report(tree, "2026-09", "04")`"""
+    """Report on one rotated day, e.g. `day_report(tree, "2026-09", "04")`"""
     day_dir = tree.day_dir(month, day)
     replay = Replay(tree.descrs(day_dir)).replay(tree.entries(day_dir))
     return format_day_report(replay)

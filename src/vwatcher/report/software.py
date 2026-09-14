@@ -121,7 +121,7 @@ def leading_number(value: str) -> float:
 
 
 def dissect_cisco_version(version: str) -> Optional[VersionFields]:
-    """Split f.ex. `15.2(4)S7` into major, minor, train, revision, train revision"""
+    """Split e.g. `15.2(4)S7` into major, minor, train, revision, train revision"""
     if not (match := CISCO_VERSION.search(version)):
         return None
     major, minor, revision, train, train_revision = match.groups()
@@ -129,7 +129,7 @@ def dissect_cisco_version(version: str) -> Optional[VersionFields]:
 
 
 def dissect_junos_version(version: str) -> Optional[VersionFields]:
-    """Split f.ex. `20.4R3-S2.1` into major, minor, type, revision, minor revision"""
+    """Split e.g. `20.4R3-S2.1` into major, minor, type, revision, minor revision"""
     for release_type, offset, pattern in JUNOS_VERSIONS:
         if not (match := pattern.search(version)):
             continue

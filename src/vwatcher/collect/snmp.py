@@ -67,11 +67,11 @@ class ZinoSession:
         (_, object_id), (_, descr) = await _as_snmp_error(
             self.session.get2(("SNMPv2-MIB", "sysObjectID", 0), ("SNMPv2-MIB", "sysDescr", 0))
         )
-        return SystemInfo(object_id=str(object_id), descr=_text(descr))
+        return SystemInfo(object_id=str(object_id), descr=_decoded_text(descr))
 
     async def get_why_reload(self) -> str:
         response = await _as_snmp_error(self.session.get("OLD-CISCO-SYSTEM-MIB", "whyReload", 0))
-        return _text(response.value)
+        return _decoded_text(response.value)
 
 
 def open_session(device: PollDevice) -> SnmpSession:
@@ -90,7 +90,7 @@ def _polling_device(device: PollDevice) -> PollDevice:
     return device.model_copy(update={"snmpversion": "v1"})
 
 
-def _text(value) -> str:
+def _decoded_text(value) -> str:
     """
     Decode a string a device answered with.
 

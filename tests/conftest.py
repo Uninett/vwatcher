@@ -85,7 +85,7 @@ def clock() -> FakeClock:
 @pytest.fixture
 def log_tree(tmp_path, clock) -> LogTree:
     tree = LogTree(tmp_path / "logs", clock=clock)
-    tree.ensure()
+    tree.ensure_today()
     return tree
 
 
