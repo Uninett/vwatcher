@@ -19,7 +19,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from zino.config.models import DEFAULT_INTERVAL_MINUTES, PollDevice
 from zino.config.polldevs import InvalidConfiguration, read_polldevs
 
-from vwatcher.collect.snmp import SnmpSession, open_session
+from vwatcher.collect.snmp import ZinoSession, open_session
 from vwatcher.collect.versiontask import DeviceState, VersionTask
 from vwatcher.config import Configuration
 from vwatcher.store import LogTree
@@ -44,7 +44,7 @@ class Poller:
         self.state = state if state is not None else defaultdict(DeviceState)
         self.session_factory = session_factory
         self.devices: dict[str, PollDevice] = {}
-        self.sessions: dict[str, SnmpSession] = {}
+        self.sessions: dict[str, ZinoSession] = {}
         self._scheduler = scheduler
         self._pollfile_mtime: Optional[float] = None
 

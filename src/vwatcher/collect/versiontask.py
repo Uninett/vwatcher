@@ -18,7 +18,7 @@ from typing import Optional
 
 from zino.config.models import PollDevice
 
-from vwatcher.collect.snmp import SnmpError, SnmpSession, SystemInfo
+from vwatcher.collect.snmp import SnmpError, SystemInfo, ZinoSession
 from vwatcher.config import ALLOWED_OFFSET
 from vwatcher.store import LogTree, eventlog
 
@@ -50,7 +50,7 @@ class VersionTask:
         device: PollDevice,
         state: defaultdict[str, DeviceState],
         tree: LogTree,
-        snmp: SnmpSession,
+        snmp: ZinoSession,
         allowed_offset: int = ALLOWED_OFFSET,
         clock=time.time,
     ):

@@ -3,7 +3,7 @@ The narrow SNMP interface vwatcher needs, building on top of Zino's SNMP backend
 """
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, Protocol
+from typing import TYPE_CHECKING, Optional
 
 from zino.config.models import PollDevice
 from zino.oid import OID
@@ -40,41 +40,31 @@ class SystemInfo:
             return False
 
 
-class SnmpSession(Protocol):
-    """What a poll task requires of an SNMP session"""
-
-    async def get_uptime(self) -> int:
-        """Return `sysUpTime` in centiseconds"""
-
-    async def get_system(self) -> SystemInfo:
-        """Return `sysObjectID` and `sysDescr`"""
-
-    async def get_why_reload(self) -> str:
-        """Return the Cisco restart reason"""
-
-
 class ZinoSession:
-    """An `SnmpSession` answered by one of Zino's SNMP backends"""
+    """The SNMP operations a poll task needs, answered by one of Zino's back-ends"""
 
     def __init__(self, session: "SNMP"):
         self.session = session
 
     async def get_uptime(self) -> int:
+        """Return `sysUpTime` in centiseconds"""
         response = await _as_snmp_error(self.session.get("SNMPv2-MIB", "sysUpTime", 0))
         return int(response.value)
 
     async def get_system(self) -> SystemInfo:
+        """Return `sysObjectID` and `sysDescr`"""
         (_, object_id), (_, descr) = await _as_snmp_error(
             self.session.get2(("SNMPv2-MIB", "sysObjectID", 0), ("SNMPv2-MIB", "sysDescr", 0))
         )
         return SystemInfo(object_id=str(object_id), descr=_decoded_text(descr))
 
     async def get_why_reload(self) -> str:
+        """Return the Cisco restart reason"""
         response = await _as_snmp_error(self.session.get("OLD-CISCO-SYSTEM-MIB", "whyReload", 0))
         return _decoded_text(response.value)
 
 
-def open_session(device: PollDevice) -> SnmpSession:
+def open_session(device: PollDevice) -> ZinoSession:
     return ZinoSession(get_snmp_session(device=_polling_device(device)))
 
 
