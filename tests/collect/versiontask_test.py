@@ -16,7 +16,7 @@ def task(device, state, log_tree, session, clock):
 
 
 def events(log_tree, event=None):
-    return [entry for entry in log_tree.entries() if event is None or entry.event == event]
+    return [entry for entry in log_tree.get_entries() if event is None or entry.event == event]
 
 
 class TestFirstPoll:
@@ -35,11 +35,11 @@ class TestFirstPoll:
 
     async def test_should_record_the_uptime_state_file(self, task, log_tree, device, session):
         await task.run()
-        assert log_tree.uptimes() == {device.name: session.uptime}
+        assert log_tree.get_uptimes() == {device.name: session.uptime}
 
     async def test_should_record_the_version_baseline(self, task, log_tree, device):
         await task.run()
-        assert log_tree.descrs() == {device.name: CISCO_DESCR}
+        assert log_tree.get_descrs() == {device.name: CISCO_DESCR}
 
     async def test_should_ask_for_the_version_only_once(self, task, session):
         await task.run()
@@ -105,7 +105,7 @@ class TestSubsequentPolls:
         session.uptime += 60 * TICKS_PER_SECOND
         await task.run()
 
-        assert log_tree.uptimes() == {device.name: session.uptime}
+        assert log_tree.get_uptimes() == {device.name: session.uptime}
 
     async def test_should_not_rewrite_the_version_baseline(self, task, session, clock):
         await task.run()
@@ -127,7 +127,7 @@ class TestSubsequentPolls:
         session.uptime += 60 * TICKS_PER_SECOND
         await task.run()
 
-        assert log_tree.descrs() == {device.name: CISCO_DESCR}
+        assert log_tree.get_descrs() == {device.name: CISCO_DESCR}
 
     async def test_when_the_device_was_just_booting_then_the_next_poll_should_confirm_the_restart(
         self, task, log_tree, session, clock
@@ -200,7 +200,7 @@ class TestSnmpFailure:
         await VersionTask(device, state, log_tree, session, clock=clock).run()
 
         assert state[device.name].last_poll is None
-        assert log_tree.uptimes() == {}
+        assert log_tree.get_uptimes() == {}
 
     async def test_when_the_uptime_poll_recovers_then_the_device_is_not_reported_restarted_twice(
         self, device, state, log_tree, clock
@@ -224,4 +224,4 @@ class TestSnmpFailure:
         await VersionTask(device, state, log_tree, session, clock=clock).run()
 
         assert "poll returned noSuchName" in log_tree.log_file.read_text()
-        assert log_tree.descrs() == {}
+        assert log_tree.get_descrs() == {}

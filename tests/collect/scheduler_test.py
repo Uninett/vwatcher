@@ -60,41 +60,41 @@ def rewrite(path, body, mtime=2_000_000_000):
 
 
 class TestLoadPolldevs:
-    def test_should_report_every_device_as_new_on_the_first_read(self, poller):
-        new, deleted, changed, defaults = poller.load_polldevs()
+    def test_should_report_every_device_as_new_on_the_first_read(self, poller, polldevs_conf):
+        new, deleted, changed, defaults = poller.load_polldevs(polldevs_conf)
 
         assert new == {"example-gw", "example-gw2"}
         assert not deleted and not changed
         assert defaults["interval"] == "5"
 
-    def test_when_the_file_is_untouched_then_it_should_report_no_changes(self, poller):
-        poller.load_polldevs()
+    def test_when_the_file_is_untouched_then_it_should_report_no_changes(self, poller, polldevs_conf):
+        poller.load_polldevs(polldevs_conf)
 
-        assert poller.load_polldevs() == (set(), set(), set(), {})
+        assert poller.load_polldevs(polldevs_conf) == (set(), set(), set(), {})
 
     def test_should_report_a_removed_device_as_deleted(self, poller, polldevs_conf):
-        poller.load_polldevs()
+        poller.load_polldevs(polldevs_conf)
         rewrite(polldevs_conf, "name: example-gw\naddress: 10.0.42.1\n")
 
-        new, deleted, changed, _ = poller.load_polldevs()
+        new, deleted, changed, _ = poller.load_polldevs(polldevs_conf)
 
         assert deleted == {"example-gw2"}
         assert not new and not changed
 
     def test_should_forget_the_state_of_a_deleted_device(self, poller, polldevs_conf, state):
-        poller.load_polldevs()
+        poller.load_polldevs(polldevs_conf)
         state["example-gw2"]
         rewrite(polldevs_conf, "name: example-gw\naddress: 10.0.42.1\n")
 
-        poller.load_polldevs()
+        poller.load_polldevs(polldevs_conf)
 
         assert "example-gw2" not in state
 
     def test_should_report_an_edited_device_as_changed(self, poller, polldevs_conf):
-        poller.load_polldevs()
+        poller.load_polldevs(polldevs_conf)
         rewrite(polldevs_conf, "name: example-gw\naddress: 10.0.42.1\ninterval: 10\n")
 
-        new, deleted, changed, _ = poller.load_polldevs()
+        new, deleted, changed, _ = poller.load_polldevs(polldevs_conf)
 
         assert changed == {"example-gw"}
         assert poller.devices["example-gw"].interval == 10
@@ -102,13 +102,13 @@ class TestLoadPolldevs:
     def test_when_the_file_is_missing_then_it_should_report_nothing(self, poller, polldevs_conf):
         polldevs_conf.unlink()
 
-        assert poller.load_polldevs() == (set(), set(), set(), {})
+        assert poller.load_polldevs(polldevs_conf) == (set(), set(), set(), {})
 
     def test_when_the_file_turns_invalid_then_it_should_keep_the_devices_it_had(self, poller, polldevs_conf):
-        poller.load_polldevs()
+        poller.load_polldevs(polldevs_conf)
         rewrite(polldevs_conf, "this is not a setting\n")
 
-        assert poller.load_polldevs() == (set(), set(), set(), {})
+        assert poller.load_polldevs(polldevs_conf) == (set(), set(), set(), {})
         assert set(poller.devices) == {"example-gw", "example-gw2"}
 
 
@@ -163,15 +163,15 @@ class TestScheduling:
 
 
 class TestPollDevice:
-    async def test_should_poll_a_configured_device(self, poller, log_tree):
-        poller.load_polldevs()
+    async def test_should_poll_a_configured_device(self, poller, polldevs_conf, log_tree):
+        poller.load_polldevs(polldevs_conf)
 
         await poller.poll_device("example-gw")
 
-        assert [entry.event for entry in log_tree.entries()][0] == RELOADED
+        assert [entry.event for entry in log_tree.get_entries()][0] == RELOADED
 
-    async def test_should_reuse_one_session_per_device(self, poller):
-        poller.load_polldevs()
+    async def test_should_reuse_one_session_per_device(self, poller, polldevs_conf):
+        poller.load_polldevs(polldevs_conf)
 
         await poller.poll_device("example-gw")
         session = poller.sessions["example-gw"]
@@ -182,7 +182,7 @@ class TestPollDevice:
     async def test_when_a_device_is_gone_then_it_should_do_nothing(self, poller, log_tree):
         await poller.poll_device("never-seen")
 
-        assert list(log_tree.entries()) == []
+        assert list(log_tree.get_entries()) == []
 
 
 class TestRun:

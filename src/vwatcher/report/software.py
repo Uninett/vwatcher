@@ -86,7 +86,8 @@ def pretty_desc(descr: str) -> str:
 
 
 def split_pretty(descr: str) -> tuple[str, str]:
-    """Split a prettified description into its OS name and version.
+    """
+    Split a prettified description into its OS name and version.
 
     Both are empty where no rule recognized the description, which is how the
     reports fall back to ordering by name.

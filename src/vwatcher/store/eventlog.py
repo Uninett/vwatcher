@@ -1,4 +1,17 @@
-"""Reading and writing `ver-watch.log`"""
+"""
+Reading and writing `ver-watch.log`
+
+Each event is one line:
+
+    Thu Sep 04 09:45:01 2026  example-gw reloaded: Thu Sep 04 09:12:33 2026
+    <-------- timestamp ---->  <-device-> <event>: <----- value ------>
+
+`timestamp` is naive local time
+`device` is the pollfile name
+`event` is one of `EVENTS`
+`value` is event-specific.
+A multi-line value is written between `#` sentinels instead.
+"""
 
 import logging
 import re
@@ -136,7 +149,8 @@ class EventLog:
     def write_event(self, device: str, event: str, value: str) -> None:
         self.write(f"{device} {event}", value)
 
-    def entries(self) -> Iterator[LogEntry]:
+    def get_entries(self) -> Iterator[LogEntry]:
+        """Parse this log's recognized events, yielding nothing if it does not exist"""
         if not self.path.exists():
             return
         with open(self.path, "r", errors="replace") as log:

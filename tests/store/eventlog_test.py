@@ -82,14 +82,14 @@ class TestEventLogRead:
         log = EventLog(tmp_path / "ver-watch.log", clock=clock)
         log.write_event("example-gw", SOFTWARE, "IOS one\nIOS two")
 
-        entry = next(iter(log.entries()))
+        entry = next(iter(log.get_entries()))
         assert entry.device == "example-gw"
         assert entry.event == SOFTWARE
         assert entry.value == "IOS one\nIOS two"
         assert entry.timestamp == datetime(2025, 9, 4, 12, 0, 0)
 
     def test_when_the_log_is_missing_then_it_should_yield_nothing(self, tmp_path):
-        assert list(EventLog(tmp_path / "absent.log").entries()) == []
+        assert list(EventLog(tmp_path / "absent.log").get_entries()) == []
 
     def test_should_skip_diagnostic_lines(self):
         lines = [

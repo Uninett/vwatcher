@@ -37,19 +37,25 @@ class LogTree:
     def log_file(self) -> Path:
         return self.path_today / LOG_NAME
 
-    def descr_file(self, device: str) -> Path:
+    def get_descr_file(self, device: str) -> Path:
+        """Locate where today's software version for a device is recorded"""
         return self.path_today / DESCS_DIR / device
 
-    def uptime_file(self, device: str) -> Path:
+    def get_uptime_file(self, device: str) -> Path:
+        """Locate where today's last seen sysUpTime for a device is recorded"""
         return self.path_today / UPTIME_DIR / device
 
-    def day_dir(self, year_month: str, day: str) -> Path:
-        """Locate one rotated day, e.g. `day_dir("2026-09", "04")`"""
+    def get_day_dir(self, year_month: str, day: str) -> Path:
+        """Locate one rotated day, e.g. `get_day_dir("2026-09", "04")`"""
         return self.root / year_month / day
 
-    def day_dirs(self, month: str) -> list[Path]:
-        """List one month's rotated day directories, in date order"""
-        return sorted(path for path in (self.root / month).iterdir() if path.is_dir())
+    def get_day_dirs(self, year_month: str) -> list[Path]:
+        """
+        List one month's rotated day directories, in date order
+
+        :raises OSError: If the month was never rotated into.
+        """
+        return sorted(path for path in (self.root / year_month).iterdir() if path.is_dir())
 
     # State written by the poll task
 
@@ -65,26 +71,27 @@ class LogTree:
 
         An empty file counts as unrecorded, so a failed write is retried.
         """
-        path = self.descr_file(device)
+        path = self.get_descr_file(device)
         return path.exists() and path.stat().st_size > 0
 
     def save_version(self, device: str, descr: str) -> None:
-        self.descr_file(device).write_text(normalize_descr(descr) + "\n")
+        """Record the software version a device reports as today's baseline"""
+        self.get_descr_file(device).write_text(normalize_descr(descr) + "\n")
 
     def save_uptime(self, device: str, uptime: int) -> None:
         """Record the last sysUpTime seen for a device in centiseconds"""
-        self.uptime_file(device).write_text(f"{uptime}\n")
+        self.get_uptime_file(device).write_text(f"{uptime}\n")
 
     # State read by the reports
 
-    def descrs(self, day: Optional[Path] = None) -> dict[str, str]:
+    def get_descrs(self, day: Optional[Path] = None) -> dict[str, str]:
         """Read the start-of-day software version per device, defaulting to today"""
         return {
             path.name: normalize_descr(path.read_text(errors="replace"))
             for path in _files_in((day or self.path_today) / DESCS_DIR)
         }
 
-    def uptimes(self, day: Optional[Path] = None) -> dict[str, int]:
+    def get_uptimes(self, day: Optional[Path] = None) -> dict[str, int]:
         """Read the last sysUpTime per device in centiseconds, defaulting to today"""
         uptimes = {}
         for path in _files_in((day or self.path_today) / UPTIME_DIR):
@@ -92,13 +99,17 @@ class LogTree:
                 uptimes[path.name] = int(path.read_text().strip())
         return uptimes
 
-    def entries(self, day: Optional[Path] = None) -> Iterator[LogEntry]:
-        return EventLog((day or self.path_today) / LOG_NAME).entries()
+    def get_entries(self, day: Optional[Path] = None) -> Iterator[LogEntry]:
+        """Read the events logged on a day, defaulting to today"""
+        return EventLog((day or self.path_today) / LOG_NAME).get_entries()
 
     def rotate(self, when: Optional[date] = None) -> Path:
-        """Move a day's log and state into `YYYY-MM/DD`, then start a fresh day"""
+        """
+        Move path_today's log into a folder for the specific date on the `YYYY-MM/DD` format.
+        Afterwards it starts a fresh day.
+        """
         when = when or date.today()
-        target = self.day_dir(f"{when:%Y-%m}", f"{when:%d}")
+        target = self.get_day_dir(f"{when:%Y-%m}", f"{when:%d}")
         target.mkdir(parents=True, exist_ok=True)
         for item in self.path_today.iterdir():
             shutil.move(str(item), str(target / item.name))

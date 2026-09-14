@@ -115,7 +115,8 @@ def _parse_args(parser: argparse.ArgumentParser, argv: Optional[Sequence[str]]) 
 
 
 def load_config(args: argparse.Namespace) -> Configuration:
-    """Load the configuration file, exiting the process if there are config errors.
+    """
+    Load the configuration file, exiting the process if there are config errors.
 
     Returns the defaults if no config file was named or none exists.
     """

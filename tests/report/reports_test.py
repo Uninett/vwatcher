@@ -41,7 +41,7 @@ def restart(booted=BOOTED, device="example-gw", when=DAY, reason=None, software=
 
 def write_day(tree, month, day, entries=(), descrs=None):
     """Populates an already rotated day directory, stamping each entry with its own time"""
-    day_dir = tree.day_dir(month, day)
+    day_dir = tree.get_day_dir(month, day)
     (day_dir / "descs").mkdir(parents=True, exist_ok=True)
     (day_dir / "uptime").mkdir(parents=True, exist_ok=True)
     for name, descr in (descrs or {}).items():
@@ -348,4 +348,4 @@ class TestRotateAndReport:
 
         assert "Restarted/crashed routers:" in report
         assert log_tree.log_file.read_text() == ""
-        assert (log_tree.day_dir("2025-09", "04") / "report").read_text() == report
+        assert (log_tree.get_day_dir("2025-09", "04") / "report").read_text() == report

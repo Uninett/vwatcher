@@ -38,7 +38,7 @@ class TestVwDaily:
     def test_should_leave_the_report_in_the_correct_day(self, vwatcher_conf, busy_day, mailed):
         cli.vw_daily(["--config-file", str(vwatcher_conf), "--date", "2025-09-04"])
 
-        assert "Upgraded routers:" in (busy_day.day_dir("2025-09", "04") / "report").read_text()
+        assert "Upgraded routers:" in (busy_day.get_day_dir("2025-09", "04") / "report").read_text()
 
     def test_should_print_report_instead_of_mailing_it_when_promted(self, vwatcher_conf, busy_day, mailed, capsys):
         cli.vw_daily(["--config-file", str(vwatcher_conf), "--date", "2025-09-04", "--no-mail"])

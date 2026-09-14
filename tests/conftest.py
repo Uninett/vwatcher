@@ -67,7 +67,8 @@ class FakeSNMPSession:
 
 @pytest.fixture(scope="session")
 def event_loop():
-    """Redefine pytest-asyncio's event loop to live for the whole session.
+    """
+    Redefine pytest-asyncio's event loop to live for the whole session.
 
     Zino's PySNMP back-end keeps one SNMP engine for the whole process, and it
     only works with the loop it was built on: a loop per test hangs the rest.

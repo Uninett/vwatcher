@@ -178,8 +178,8 @@ def format_uptime(centiseconds: Optional[int]) -> str:
 
 def day_report(tree: LogTree, month: str, day: str) -> str:
     """Report on one rotated day, e.g. `day_report(tree, "2026-09", "04")`"""
-    day_dir = tree.day_dir(month, day)
-    replay = Replay(tree.descrs(day_dir)).replay(tree.entries(day_dir))
+    day_dir = tree.get_day_dir(month, day)
+    replay = Replay(tree.get_descrs(day_dir)).replay(tree.get_entries(day_dir))
     return format_day_report(replay)
 
 
@@ -221,14 +221,14 @@ def _restart_is_boring(device: DeviceHistory) -> bool:
 
 def month_upgrade_report(tree: LogTree, month: str) -> str:
     """Report every upgrade of one month, one line per version step, in date order"""
-    day_dirs = tree.day_dirs(month)
+    day_dirs = tree.get_day_dirs(month)
     if not day_dirs:
         return ""
     lines: list[str] = []
-    replay = Replay(tree.descrs(day_dirs[0]))
+    replay = Replay(tree.get_descrs(day_dirs[0]))
     for day_dir in day_dirs:
-        replay.observe_descrs(tree.descrs(day_dir))
-        replay.replay(tree.entries(day_dir))
+        replay.observe_descrs(tree.get_descrs(day_dir))
+        replay.replay(tree.get_entries(day_dir))
         lines += replay.flush_upgrades(label=_day_label(month, day_dir.name))
     return "".join(line + "\n" for line in lines)
 
@@ -236,8 +236,8 @@ def month_upgrade_report(tree: LogTree, month: str) -> str:
 def month_restart_report(tree: LogTree, month: str) -> str:
     """Report every restart of one month for which a device reported a reason"""
     replay = Replay()
-    for day_dir in tree.day_dirs(month):
-        replay.replay(tree.entries(day_dir))
+    for day_dir in tree.get_day_dirs(month):
+        replay.replay(tree.get_entries(day_dir))
     lines = []
     for event in replay.restart_events:
         fields = event.reload_date.split()
@@ -248,7 +248,7 @@ def month_restart_report(tree: LogTree, month: str) -> str:
 
 def _todays_devices(tree: LogTree) -> list[DeviceHistory]:
     """Replay today, giving every device the version it now runs"""
-    return list(Replay(tree.descrs()).replay(tree.entries()).devices.values())
+    return list(Replay(tree.get_descrs()).replay(tree.get_entries()).devices.values())
 
 
 def _by_version(device: DeviceHistory) -> tuple:
@@ -264,7 +264,7 @@ def current_versions(tree: LogTree) -> str:
 def uptime_report(tree: LogTree, by_uptime: bool = False) -> str:
     """Report today's software version and uptime per device"""
     devices = _todays_devices(tree)
-    uptimes = tree.uptimes()
+    uptimes = tree.get_uptimes()
     devices.sort(key=(lambda device: uptimes.get(device.name, 0)) if by_uptime else _by_version)
     return "".join(
         f"{device.name:<25} {pretty_desc(device.current)[:36]:<36} {format_uptime(uptimes.get(device.name)):>16}\n"
@@ -288,6 +288,6 @@ def rotate_and_report(tree: LogTree, when=None) -> str:
     The report is also written into the rotated day's directory, as `report`.
     """
     day_dir: Path = tree.rotate(when)
-    report = format_day_report(Replay(tree.descrs(day_dir)).replay(tree.entries(day_dir)))
+    report = format_day_report(Replay(tree.get_descrs(day_dir)).replay(tree.get_entries(day_dir)))
     (day_dir / "report").write_text(report)
     return report

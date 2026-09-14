@@ -12,7 +12,7 @@ import operator
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 
 from apscheduler.jobstores.base import JobLookupError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -78,29 +78,30 @@ class Poller:
 
     def reload_polldevs(self) -> None:
         """Re-read the pollfile, and schedule what changed in it"""
-        new, deleted, changed, defaults = self.load_polldevs()
+        new, deleted, changed, defaults = self.load_polldevs(self.config.polling.file)
         self.deschedule_devices(deleted | changed)
         self.schedule_devices(new | changed, stagger=_stagger_interval(defaults))
 
-    def load_polldevs(self) -> tuple[set[str], set[str], set[str], dict]:
-        """Load `polldevs.cf` if it changed since the last time it was read
+    def load_polldevs(self, pollfile: Union[str, Path]) -> tuple[set[str], set[str], set[str], dict]:
+        """
+        Load a pollfile if it changed since the last time it was read
 
+        :param pollfile: Path to the pollfile, usually `polldevs.cf`
         :return: The new, deleted and changed device names, and the pollfile's
             defaults.  All four are empty if nothing was read.
         """
-        nothing: tuple[set(), set(), set(), dict] = (set(), set(), set(), {})
         try:
-            mtime = Path(self.config.polling.file).stat().st_mtime
+            mtime = Path(pollfile).stat().st_mtime
         except OSError as error:
             _log.error("%s", error)
-            return nothing
+            return set(), set(), set(), {}
         if mtime == self._pollfile_mtime:
-            return nothing
+            return set(), set(), set(), {}
         try:
-            devices, defaults = read_polldevs(self.config.polling.file)
+            devices, defaults = read_polldevs(pollfile)
         except (InvalidConfiguration, OSError) as error:
             _log.error("%s", error)
-            return nothing
+            return set(), set(), set(), {}
 
         new = set(devices) - set(self.devices)
         deleted = set(self.devices) - set(devices)

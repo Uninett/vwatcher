@@ -38,11 +38,12 @@ class Mail(BaseModel):
 
 
 class Scheduler(BaseModel):
-    """What the scheduler does with a poll that runs late"""
+    """Scheduler tuning"""
 
     model_config = ConfigDict(extra="forbid")
 
-    misfire_grace_time: int = 10  # Seconds
+    # How late a poll may fire before it is skipped instead, in seconds
+    misfire_grace_time: int = 10
 
 
 class Snmp(BaseModel):

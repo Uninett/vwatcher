@@ -1,4 +1,5 @@
-"""Restart and upgrade detection, core of the vwatcher daemon.
+"""
+Restart and upgrade detection, core of the vwatcher daemon.
 
 Every poll asks a device for `sysUpTime` only.  A restart is inferred when the
 reported uptime falls meaningfully short of what it should have been, given the
