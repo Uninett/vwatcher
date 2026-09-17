@@ -57,6 +57,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends snmp libsnmp-dev
 
+      # The snmpsim fixture runs snmpsim under this interpreter, to dodge a severe
+      # performance regression on Python 3.13+.  `uv python find` will not download
+      # an interpreter on its own, so make sure one is present.
+      - name: Install Python 3.11 for snmpsim
+        run: uv python install 3.11
+
       - name: Test with tox
         run: tox
 
