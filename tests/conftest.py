@@ -59,7 +59,9 @@ def snmp_port() -> int:
 
 @pytest.fixture(scope="session")
 def snmp_fixture_directory() -> str:
-    return os.path.join(os.path.dirname(__file__), "snmp_fixtures")
+    fixture_dir = os.path.join(os.path.dirname(__file__), "snmp_fixtures")
+    assert os.path.isdir(fixture_dir)
+    return fixture_dir
 
 
 @pytest.fixture(scope="session")
