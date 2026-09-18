@@ -3,9 +3,9 @@
 import asyncio
 import os
 import signal
-import socket
 import subprocess
 import sys
+import warnings
 from importlib import import_module
 from importlib.metadata import version
 from shutil import which
@@ -33,51 +33,37 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture
-def backend(request) -> ModuleType:
-    """One of Zino's SNMP backends, named by an indirect parameter"""
-    return load_backend_module(request.param)
+@pytest_asyncio.fixture(scope="session")
+async def snmpsim(snmpsim_command, snmp_port):
+    """Run a simulated SNMP agent for the tests that ask for it"""
 
-
-def load_backend_module(name: str) -> ModuleType:
-    """Import and initialize one of Zino's backends, skipping if it is unavailable here"""
+    # uvx spawns snmpsim as a grandchild, so it gets its own process group
+    # to ensure the whole tree can be killed on teardown
+    process = await asyncio.create_subprocess_exec(
+        *snmpsim_command,
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.DEVNULL,
+        start_new_session=True,
+    )
     try:
-        module = import_module(BACKENDS[name])
-        module.init_backend()
-    except (ImportError, OSError, SNMPBackendError) as error:
-        pytest.skip(f"the {name} backend is not available here: {error}")
-    return module
+        await _wait_until_it_answers(process, snmp_port)
+        yield
+    finally:
+        _kill_process_group(process)
+        await process.wait()
 
 
 @pytest.fixture(scope="session")
-def snmp_port() -> int:
-    """A free UDP port for the simulated agent to listen on"""
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
-        probe.bind(("127.0.0.1", 0))
-        return probe.getsockname()[1]
-
-
-@pytest.fixture(scope="session")
-def snmp_fixture_directory() -> str:
-    fixture_dir = os.path.join(os.path.dirname(__file__), "snmp_fixtures")
-    assert os.path.isdir(fixture_dir)
-    return fixture_dir
-
-
-@pytest.fixture(scope="session")
-def snmpsim_command(snmp_fixture_directory, snmp_port, tmp_path_factory) -> list[str]:
+def snmpsim_command(snmp_fixture_directory, snmp_port) -> list[str]:
     """
     Build the command that starts snmpsim on the `snmp_fixtures` directory.
 
     Prefers running it through `uvx` on Python 3.11, because snmpsim is roughly
     25x slower on 3.13 and newer, where `dbm.sqlite3` fsyncs every write while
     the index is built.  See https://github.com/lextudio/pysnmp/issues/223.
-
-    It gets a private `--cache-dir` to allow all the Python interpreters to run it.
     """
     arguments = [
         f"--data-dir={snmp_fixture_directory}",
-        f"--cache-dir={tmp_path_factory.mktemp('snmpsim')}",
         "--log-level=error",
         f"--agent-udpv4-endpoint=127.0.0.1:{snmp_port}",
     ]
@@ -95,30 +81,48 @@ def snmpsim_command(snmp_fixture_directory, snmp_port, tmp_path_factory) -> list
         ] + arguments
 
     path = which("snmpsim-command-responder")
-    if not path:
-        pytest.skip("neither uvx nor snmpsim-command-responder is installed")
+    assert path, "Could not find snmpsim-command-responder"
     if sys.version_info >= (3, 13):
-        pytest.skip("snmpsim is unusably slow on Python 3.13+; install uv to run it on 3.11 instead")
+        warnings.warn(
+            "Running snmpsim under Python 3.13+ without uvx. "
+            "This is known to be extremely slow due to a dbm.sqlite3 "
+            "performance regression "
+            "(https://github.com/lextudio/pysnmp/issues/223). "
+            "Expect many SNMP-dependent tests to fail with timeouts. "
+            "Install uv to run snmpsim in an isolated Python 3.11 "
+            "environment automatically.",
+            stacklevel=1,
+        )
     return [path] + arguments
 
 
-@pytest_asyncio.fixture(scope="session")
-async def snmpsim(snmpsim_command, snmp_port):
-    """Run a simulated SNMP agent for the tests that ask for it"""
-    # uvx spawns snmpsim as a grandchild, so give it its own process group
-    # to ensure the whole tree can be killed on teardown
-    process = await asyncio.create_subprocess_exec(
-        *snmpsim_command,
-        stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.DEVNULL,
-        start_new_session=True,
-    )
+@pytest.fixture(scope="session")
+def snmp_fixture_directory() -> str:
+    fixture_dir = os.path.join(os.path.dirname(__file__), "snmp_fixtures")
+    assert os.path.isdir(fixture_dir)
+    return fixture_dir
+
+
+@pytest.fixture(scope="session")
+def snmp_port() -> int:
+    """Same port used by Zino's tests"""
+    return 1024
+
+
+@pytest.fixture
+def backend(request) -> ModuleType:
+    """One of Zino's SNMP backends, named by an indirect parameter"""
+    return load_backend_module(request.param)
+
+
+def load_backend_module(name: str) -> ModuleType:
+    """Import and initialize one of Zino's backends, skipping if it is unavailable here"""
     try:
-        await _wait_until_it_answers(process, snmp_port)
-        yield
-    finally:
-        _kill_process_group(process)
-        await process.wait()
+        module = import_module(BACKENDS[name])
+        module.init_backend()
+    except (ImportError, OSError, SNMPBackendError) as error:
+        pytest.skip(f"the {name} backend is not available here: {error}")
+    return module
 
 
 async def _wait_until_it_answers(process, port: int, tries: int = 3, delay: float = 0.5, backoff: int = 2) -> None:
