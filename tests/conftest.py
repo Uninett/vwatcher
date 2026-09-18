@@ -36,15 +36,10 @@ def event_loop():
 @pytest_asyncio.fixture(scope="session")
 async def snmpsim(snmpsim_command, snmp_port):
     """Run a simulated SNMP agent for the tests that ask for it"""
-
+    print(f"Running {snmpsim_command}")
     # uvx spawns snmpsim as a grandchild, so it gets its own process group
     # to ensure the whole tree can be killed on teardown
-    process = await asyncio.create_subprocess_exec(
-        *snmpsim_command,
-        stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.DEVNULL,
-        start_new_session=True,
-    )
+    process = await asyncio.create_subprocess_exec(*snmpsim_command, start_new_session=True)
     try:
         await _wait_until_it_answers(process, snmp_port)
         yield
@@ -73,10 +68,10 @@ def snmpsim_command(snmp_fixture_directory, snmp_port) -> list[str]:
             "uvx",
             "--python=3.11",
             # pysnmp needs cryptography, but only declares it as a dev dependency
-            f"--with={_installed_spec('cryptography')}",
+            f"--with={_get_installed_spec('cryptography')}",
             # snmpsim.utils imports pysmi, but nothing pulls it in
-            f"--with={_installed_spec('pysmi')}",
-            f"--from={_installed_spec('snmpsim')}",
+            f"--with={_get_installed_spec('pysmi')}",
+            f"--from={_get_installed_spec('snmpsim')}",
             "snmpsim-command-responder",
         ] + arguments
 
@@ -161,6 +156,6 @@ def _uv_has_python(wanted: str) -> bool:
     return subprocess.run(["uv", "python", "find", wanted], capture_output=True).returncode == 0
 
 
-def _installed_spec(package: str) -> str:
+def _get_installed_spec(package: str) -> str:
     """Pin a `uvx` dependency to the version installed here"""
     return f"{package}=={version(package)}"
