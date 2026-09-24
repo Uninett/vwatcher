@@ -61,7 +61,7 @@ class Replay:
     def __init__(self, baseline: Optional[Mapping[str, str]] = None):
         self.devices: dict[str, DeviceHistory] = {}
         self.restart_events: list[RestartEvent] = []
-        self._reload_pending = False
+        self._reload_pending_devices: set[str] = set()
         for name, descr in (baseline or {}).items():
             device = self.get_device(name)
             device.baseline = device.current = descr
@@ -147,17 +147,17 @@ class Replay:
             device.restarted = True
             if not device.restarts or (device.last_reload and not _close_times(entry.value, device.last_reload)):
                 device.restarts += 1
-                self._reload_pending = True
+                self._reload_pending_devices.add(device.name)
         device.last_reload = entry.value
 
     def _restart_reason(self, entry: LogEntry) -> None:
         device = self.get_device(entry.device)
         device.reason = entry.value
-        if self._reload_pending:
+        if device.name in self._reload_pending_devices:
             self.restart_events.append(
                 RestartEvent(device=device.name, reload_date=device.last_reload or "", reason=entry.value)
             )
-        self._reload_pending = False
+        self._reload_pending_devices.discard(device.name)
 
 
 def _close_times(one: str, other: str, seconds: int = RESTART_DEDUPE_SECONDS) -> bool:

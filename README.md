@@ -59,6 +59,8 @@ The original derived the version from `hcounters`, using SNMPv1 unless it was se
 * `vw-month-upgr` baselines a month from its first rotated day, the old version needed a `01` directory.
 * `vw-daily` refuses to rotate into a day that was already rotated into before moving anything.
 The original would also fail, but only after overwriting that day's log.
+* `vw-month-rst` tracks new restarts per device. The original could list an old reboot as new if another device,
+  one that reports no restart reason, had restarted earlier that day.
 
 ## Installing vwatcher
 

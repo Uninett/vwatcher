@@ -291,6 +291,17 @@ class TestMonthRestartReport:
 
         assert len(month_restart_report(log_tree, "2025-09").splitlines()) == 1
 
+    def test_should_not_list_old_reboot_as_new_after_device_restarted_without_reason(self, log_tree):
+        write_day(
+            log_tree,
+            "2025-09",
+            "01",
+            entries=restart(device="gw-juniper")
+            + restart(device="gw-cisco", booted=datetime(2025, 8, 20, 3, 0, 0), reason="power-on"),
+        )
+
+        assert month_restart_report(log_tree, "2025-09") == ""
+
     def test_when_month_was_never_logged_then_it_should_raise(self, log_tree):
         with pytest.raises(OSError):
             month_restart_report(log_tree, "1999-12")
