@@ -117,7 +117,8 @@ class VersionTask:
     async def _log_software(self) -> Optional[SystemInfo]:
         """
         Log the software version, and the restart reason on Cisco gear.
-        :returns what the device answered.
+
+        :return: What the device answered, or None if it did not answer
         """
         name = self.device.name
         try:

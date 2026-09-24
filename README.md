@@ -55,12 +55,15 @@ from the 'today' directory to the specific date folder with the day's report, a 
 * JunOS release types (`R`, `S`, `F`, `X`) are ordered as strings, the original ordering was broken.
 * Mail settings come from `vwatcher.toml`, not from `~/.zino-mail`.
 * A device's SNMP version comes from `snmpversion` (default `v2c`), as in Zino 2.
-The original derived the version from `hcounters`, using SNMPv1 unless it was set.
+  The original derived the version from `hcounters`, using SNMPv1 unless it was set.
 * `vw-month-upgr` baselines a month from its first rotated day, the old version needed a `01` directory.
 * `vw-daily` refuses to rotate into a day that was already rotated into before moving anything.
-The original would also fail, but only after overwriting that day's log.
+  The original would also fail, but only after overwriting that day's log.
 * `vw-month-rst` tracks new restarts per device. The original could list an old reboot as new if another device,
   one that reports no restart reason, had restarted earlier that day.
+* `uptimes` orders devices the same way as `cur-vers`. The original did it differently for Cisco IOS and JunOS.
+* A device without a baseline for the day can still be reported as upgraded in the daily report, as the original's monthly report already did.
+* A device whose `polldevs.cf` entry changes keeps its uptime history, the original logged it as reloaded again.
 
 ## Installing vwatcher
 
@@ -82,7 +85,7 @@ to perform.
 | Command | What it does |
 | --- | --- |
 | `vwatcher` | The daemon.  Polls every device in `polldevs.cf`, re-reading the file when it changes. |
-| `vw-daily` | Rotates today's logs into `YYYY-MM/DD`, then reports on and mails the day just ended.  Run from cron just after midnight. |
+| `vw-daily` | Rotates today's logs into `YYYY-MM/DD`, then reports on and mails that day.  Run from cron shortly before midnight. |
 | `vw-day-report YYYY-MM DD` | Rebuilds an earlier day's report from its rotated logs: which devices were upgraded, and which restarted or crashed. |
 | `vw-month-upgr YYYY-MM` | Every upgrade of a month, one line per version step. |
 | `vw-month-rst YYYY-MM` | Every restart of a month for which the device reported a reason. |
