@@ -56,6 +56,8 @@ from the 'today' directory to the specific date folder with the day's report, a 
 * Mail settings come from `vwatcher.toml`, not from `~/.zino-mail`.
 * `hcounters: no` forces SNMPv1 as before, otherwise a device's `snmpversion` decides.
 * `vw-month-upgr` baselines a month from its first rotated day, the old version needed a `01` directory.
+* `vw-daily` refuses to rotate into a day that was already rotated into before moving anything.
+The original would also fail, but only after overwriting that day's log.
 
 ## Installing vwatcher
 

@@ -47,6 +47,15 @@ class TestVwDaily:
         assert "Upgraded routers:" in capsys.readouterr().out
         assert mailed == []
 
+    def test_should_fail_and_explain_when_day_was_already_rotated_into(self, vwatcher_config, busy_day, mailed, caplog):
+        cli.vw_daily(["--config-file", str(vwatcher_config), "--date", "2025-09-04"])
+
+        with pytest.raises(SystemExit):
+            cli.vw_daily(["--config-file", str(vwatcher_config), "--date", "2025-09-04"])
+
+        assert "Could not rotate the logs" in caplog.text
+        assert len(mailed) == 1
+
 
 class TestReportCommands:
     # The report commands read rotated days, so vw_daily is run to rotate the first one

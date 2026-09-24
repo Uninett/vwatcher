@@ -107,9 +107,13 @@ class LogTree:
         """
         Move path_today's log into a folder for the specific date on the `YYYY-MM/DD` format.
         Afterwards it starts a fresh day.
+
+        :raises FileExistsError: If that date was already rotated into
         """
         when = when or date.today()
         target = self.get_day_dir(f"{when:%Y-%m}", f"{when:%d}")
+        if target.exists() and any(target.iterdir()):
+            raise FileExistsError(f"{target} was already rotated into")
         target.mkdir(parents=True, exist_ok=True)
         for item in self.path_today.iterdir():
             shutil.move(str(item), str(target / item.name))

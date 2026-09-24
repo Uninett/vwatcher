@@ -81,6 +81,18 @@ class TestRotate:
         assert log_tree.get_descrs() == {}
         assert log_tree.get_uptimes() == {}
 
+    def test_should_refuse_when_day_was_already_rotated_into(self, log_tree):
+        log_tree.log.write("first event")
+        day_dir = log_tree.rotate(date(2025, 9, 4))
+        log_tree.log.write("second event")
+
+        with pytest.raises(FileExistsError):
+            log_tree.rotate(date(2025, 9, 4))
+
+        assert (day_dir / "ver-watch.log").read_text().endswith("first event\n")
+        assert log_tree.log_file.read_text().endswith("second event\n")
+        assert not (day_dir / "descs" / "descs").exists()
+
     def test_should_default_to_today(self, log_tree):
         assert log_tree.rotate() == log_tree.get_day_dir(f"{date.today():%Y-%m}", f"{date.today():%d}")
 

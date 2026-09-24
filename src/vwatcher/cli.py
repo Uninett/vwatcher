@@ -51,7 +51,11 @@ def vw_daily(argv: Optional[Sequence[str]] = None) -> int:
     config = load_config(args)
     when = args.date or date.today()
 
-    report = reports.rotate_and_report(LogTree(config.log_directory), when)
+    try:
+        report = reports.rotate_and_report(LogTree(config.log_directory), when)
+    except FileExistsError as error:
+        _log.fatal("Could not rotate the logs: %s", error)
+        sys.exit(1)
     if args.no_mail:
         sys.stdout.write(report)
     else:
