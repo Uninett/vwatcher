@@ -10,13 +10,12 @@ from vwatcher.report.reports import (
     current_versions,
     day_report,
     format_day_report,
-    format_uptime,
     month_restart_report,
     month_upgrade_report,
     rotate_and_report,
     uptime_report,
 )
-from vwatcher.store import RELOADED, RESTART_REASON, SOFTWARE, UPTIME, LogEntry, format_timestamp
+from vwatcher.store import RELOADED, RESTART_REASON, SOFTWARE, UPTIME, LogEntry, format_timestamp, format_uptime
 
 DAY = datetime(2025, 9, 4, 12, 0, 0)
 BOOTED = datetime(2025, 9, 4, 11, 0, 0)
@@ -30,7 +29,7 @@ def restart(booted=BOOTED, device="example-gw", when=DAY, reason=None, software=
     """Logged entries when a restart occurs"""
     entries = [
         entry(RELOADED, format_timestamp(booted), device, when),
-        entry(UPTIME, str(int((when - booted).total_seconds()) * 100), device, when),
+        entry(UPTIME, format_uptime(int((when - booted).total_seconds()) * 100), device, when),
     ]
     if software:
         entries.append(entry(SOFTWARE, software, device, when))
@@ -86,7 +85,7 @@ class TestReplayRestarts:
     def test_should_register_device_seen_only_in_uptime_entry(self):
         # A device whose sysDescr poll failed has no baseline, so the uptime
         # entry is the only thing that puts it in cur-vers and uptimes
-        replay = Replay().observe_entries([entry(UPTIME, "360000")])
+        replay = Replay().observe_entries([entry(UPTIME, "0d  1:00:00.00")])
 
         assert "example-gw" in replay.devices
 
@@ -349,21 +348,6 @@ class TestUptimeReport:
         report = uptime_report(log_tree, by_uptime=True)
 
         assert report.index("gw-new") < report.index("gw-old")
-
-
-class TestFormatUptime:
-    @pytest.mark.parametrize(
-        "centiseconds, expected",
-        [
-            (0, "0d  0:00:00.00"),
-            (100, "0d  0:00:01.00"),
-            (8640000, "1d  0:00:00.00"),
-            (360012, "0d  1:00:00.12"),
-            (None, ""),
-        ],
-    )
-    def test_should_format_centiseconds_as_days_and_time(self, centiseconds, expected):
-        assert format_uptime(centiseconds) == expected
 
 
 class TestRotateAndReport:

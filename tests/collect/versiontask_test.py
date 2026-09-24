@@ -5,7 +5,7 @@ import pytest
 from tests.conftest import CISCO_DESCR, JUNIPER_DESCR, JUNIPER_OID, FakeSNMPSession
 from vwatcher.collect.snmp import SystemInfo
 from vwatcher.collect.versiontask import COUNTER32_MAX, TICKS_PER_SECOND, VersionTask
-from vwatcher.store import RELOADED, RESTART_REASON, SOFTWARE, UPTIME, parse_timestamp
+from vwatcher.store import RELOADED, RESTART_REASON, SOFTWARE, UPTIME, format_uptime, parse_timestamp
 
 ONE_HOUR = 3600 * TICKS_PER_SECOND
 
@@ -26,7 +26,7 @@ class TestFirstPoll:
 
     async def test_should_log_the_uptime_it_has_read(self, task, log_tree, session):
         await task.run()
-        assert get_events(log_tree, UPTIME)[0].value == str(session.uptime)
+        assert get_events(log_tree, UPTIME)[0].value == format_uptime(session.uptime)
 
     async def test_should_log_when_the_device_booted(self, task, log_tree, session, clock):
         await task.run()

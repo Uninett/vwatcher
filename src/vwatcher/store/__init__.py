@@ -8,6 +8,7 @@ from vwatcher.store.eventlog import (
     EventLog,
     LogEntry,
     format_timestamp,
+    format_uptime,
     normalize_descr,
     parse_timestamp,
 )
@@ -22,6 +23,7 @@ __all__ = [
     "LogEntry",
     "LogTree",
     "format_timestamp",
+    "format_uptime",
     "normalize_descr",
     "parse_timestamp",
 ]

@@ -79,7 +79,7 @@ class VersionTask:
         system = None
         if not self._uptime_is_expected(uptime, device_state, now):
             self.tree.log.write_event(name, eventlog.RELOADED, self._boot_time(uptime, now))
-            self.tree.log.write_event(name, eventlog.UPTIME, str(uptime))
+            self.tree.log.write_event(name, eventlog.UPTIME, eventlog.format_uptime(uptime))
             system = await self._log_software()
 
         device_state.uptime = uptime

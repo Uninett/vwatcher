@@ -2,11 +2,14 @@
 
 from datetime import datetime
 
+import pytest
+
 from vwatcher.store.eventlog import (
     RELOADED,
     SOFTWARE,
     EventLog,
     format_timestamp,
+    format_uptime,
     normalize_descr,
     parse_log,
     parse_timestamp,
@@ -25,6 +28,21 @@ class TestFormatTimestamp:
     def test_should_not_depend_on_the_locale(self):
         # Month and day names are ours, not the C library's
         assert "Sep" in format_timestamp(datetime(2025, 9, 4))
+
+
+class TestFormatUptime:
+    @pytest.mark.parametrize(
+        "centiseconds, expected",
+        [
+            (0, "0d  0:00:00.00"),
+            (100, "0d  0:00:01.00"),
+            (8640000, "1d  0:00:00.00"),
+            (360012, "0d  1:00:00.12"),
+            (None, ""),
+        ],
+    )
+    def test_should_format_centiseconds_as_days_and_time(self, centiseconds, expected):
+        assert format_uptime(centiseconds) == expected
 
 
 class TestParseTimestamp:

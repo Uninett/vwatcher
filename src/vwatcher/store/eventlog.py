@@ -60,6 +60,17 @@ def format_timestamp(timestamp: datetime) -> str:
     )
 
 
+def format_uptime(centiseconds: Optional[int]) -> str:
+    """Format a sysUpTime value as `0d  0:00:00.00`"""
+    if centiseconds is None:
+        return ""
+    hundredths, seconds = centiseconds % 100, centiseconds // 100
+    minutes, seconds = seconds // 60, seconds % 60
+    hours, minutes = minutes // 60, minutes % 60
+    days, hours = hours // 24, hours % 24
+    return f"{days}d {hours:2d}:{minutes:02d}:{seconds:02d}.{hundredths:02d}"
+
+
 def parse_timestamp(value: str) -> Optional[datetime]:
     """
     Parse a log timestamp, ignoring any time zone in it.

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Iterable, Iterator, Mapping, Optional
 
 from vwatcher.report.software import pretty_desc, version_sort_key
-from vwatcher.store import LogEntry, LogTree, eventlog, parse_timestamp
+from vwatcher.store import LogEntry, LogTree, eventlog, format_uptime, parse_timestamp
 
 # Two reload timestamps this close together describe the same reboot
 RESTART_DEDUPE_SECONDS = 5
@@ -165,17 +165,6 @@ def _close_times(one: str, other: str, seconds: int = RESTART_DEDUPE_SECONDS) ->
     if not first or not second:
         return False
     return abs((first - second).total_seconds()) <= seconds
-
-
-def format_uptime(centiseconds: Optional[int]) -> str:
-    """Format a sysUpTime value as `0d  0:00:00.00`"""
-    if centiseconds is None:
-        return ""
-    hundredths, seconds = centiseconds % 100, centiseconds // 100
-    minutes, seconds = seconds // 60, seconds % 60
-    hours, minutes = minutes // 60, minutes % 60
-    days, hours = hours // 24, hours % 24
-    return f"{days}d {hours:2d}:{minutes:02d}:{seconds:02d}.{hundredths:02d}"
 
 
 def day_report(tree: LogTree, year_month: str, day: str) -> str:
