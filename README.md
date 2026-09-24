@@ -54,7 +54,8 @@ from the 'today' directory to the specific date folder with the day's report, a 
 * Monthly reports walk a month's days in date order instead of the original `readdir`-based order.
 * JunOS release types (`R`, `S`, `F`, `X`) are ordered as strings, the original ordering was broken.
 * Mail settings come from `vwatcher.toml`, not from `~/.zino-mail`.
-* `hcounters: no` forces SNMPv1 as before, otherwise a device's `snmpversion` decides.
+* A device's SNMP version comes from `snmpversion` (default `v2c`), as in Zino 2.
+The original derived the version from `hcounters`, using SNMPv1 unless it was set.
 * `vw-month-upgr` baselines a month from its first rotated day, the old version needed a `01` directory.
 * `vw-daily` refuses to rotate into a day that was already rotated into before moving anything.
 The original would also fail, but only after overwriting that day's log.

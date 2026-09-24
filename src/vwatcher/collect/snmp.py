@@ -65,19 +65,8 @@ class ZinoSession:
 
 
 def open_session(device: PollDevice) -> ZinoSession:
-    return ZinoSession(get_snmp_session(device=_polling_device(device)))
-
-
-def _polling_device(device: PollDevice) -> PollDevice:
-    """
-    Adapt a device to what Zino's SNMP layer should see.
-
-    Zino honours `snmpversion` and ignores `hcounters`; the Tcl `vwatch`
-    derived the version from `hcounters` alone, and old gear still needs that.
-    """
-    if device.hcounters:
-        return device
-    return device.model_copy(update={"snmpversion": "v1"})
+    """Open a session to a device, with the SNMP version defined in its `snmpversion` field"""
+    return ZinoSession(get_snmp_session(device=device))
 
 
 def _decoded_text(value) -> str:

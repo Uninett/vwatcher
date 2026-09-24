@@ -38,13 +38,6 @@ def zino_session(monkeypatch) -> FakeZinoSession:
     return session
 
 
-@pytest.fixture
-def polled(monkeypatch) -> list:
-    devices = []
-    monkeypatch.setattr(snmp, "get_snmp_session", lambda device: devices.append(device))
-    return devices
-
-
 class TestSystemInfo:
     @pytest.mark.parametrize(
         "object_id, is_cisco",
@@ -64,17 +57,6 @@ class TestOpenSession:
 
         assert isinstance(session, ZinoSession)
         assert session.session is zino_session
-
-    def test_should_use_v2c_when_the_device_has_high_capacity_counters(self, device, polled):
-        open_session(device)
-
-        assert polled[0].snmpversion == "v2c"
-
-    def test_when_high_capacity_counters_are_off_then_it_should_fall_back_to_v1(self, device, polled):
-        # Old vwatch only used hcounters to derive versions
-        open_session(device.model_copy(update={"hcounters": False}))
-
-        assert polled[0].snmpversion == "v1"
 
 
 class TestZinoSession:
