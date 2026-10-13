@@ -4,6 +4,7 @@
 .venv/
 .tox/
 .pytest_cache/
+.ruff_cache/
 reports/
 build/
 dist/
@@ -12,6 +13,11 @@ dist/
 src/vwatcher/version.py
 docs/_build/
 .coverage
+__pycache__/
 *.pyc
 *.egg-info/
 *.whl
+
+# Local application files
+vwatcher.toml
+ver-watch/
