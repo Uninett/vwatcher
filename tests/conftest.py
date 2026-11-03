@@ -20,20 +20,7 @@ from zino.snmp.base import SnmpError as ZinoSnmpError
 BACKENDS = {"pysnmp": "zino.snmp.pysnmp_backend", "netsnmp": "zino.snmp.netsnmpy_backend"}
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """
-    Redefine pytest-asyncio's event loop to live for the whole session.
-
-    Zino's PySNMP backend keeps one SNMP engine for the whole process, and it
-    only works with the loop it was built on: a loop per test hangs the rest.
-    """
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def snmpsim(snmpsim_command, snmp_port):
     """Run a simulated SNMP agent for the tests that ask for it"""
     print(f"Running {snmpsim_command}")
