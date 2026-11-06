@@ -149,10 +149,19 @@ class TestVwatcherDaemon:
         assert cli.vwatcher(["--config-file", str(vwatcher_config)]) == 0
         assert pollers[0].polling.file == str(polldevs_config)
 
-    def test_should_let_argument_override_the_configured_pollfile(self, vwatcher_config, pollers):
-        cli.vwatcher(["--config-file", str(vwatcher_config), "--polldevs", "/etc/other-polldevs.cf"])
+    def test_should_let_argument_override_the_configured_pollfile(self, vwatcher_config, pollers, tmp_path):
+        other_pollfile = tmp_path / "other-polldevs.cf"
+        other_pollfile.write_text("")
 
-        assert pollers[0].polling.file == "/etc/other-polldevs.cf"
+        cli.vwatcher(["--config-file", str(vwatcher_config), "--polldevs", str(other_pollfile)])
+
+        assert pollers[0].polling.file == str(other_pollfile)
+
+    def test_when_overriding_pollfile_is_missing_then_it_should_exit(self, vwatcher_config, pollers, tmp_path, caplog):
+        with pytest.raises(SystemExit):
+            cli.vwatcher(["--config-file", str(vwatcher_config), "--polldevs", str(tmp_path / "absent.cf")])
+
+        assert "absent.cf" in caplog.text
 
     def test_should_load_the_configured_snmp_backend(self, vwatcher_config, pollers, backends):
         cli.vwatcher(["--config-file", str(vwatcher_config)])

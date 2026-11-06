@@ -78,9 +78,9 @@ $ pip install .
 `polldevs.cf` is the same file Zino reads, read with Zino's own parser, so one
 pollfile can serve both.  vwatcher's own settings live in `vwatcher.toml` - see
 [vwatcher.toml.example](vwatcher.toml.example) - and its `[polling]` and
-`[snmp]` sections are the ones from `zino.toml`.  This replaces the legacy
-`~/.zino-mail` and the `%TOPDIR%`/`%CONFDIR%` substitutions the Makefile used
-to perform.
+`[scheduler]` sections, and the `backend` setting of `[snmp]`, are the ones from
+`zino.toml`.  This replaces the legacy `~/.zino-mail` and the
+`%TOPDIR%`/`%CONFDIR%` substitutions the Makefile used to perform.
 
 ## Using vwatcher
 

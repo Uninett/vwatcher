@@ -13,10 +13,10 @@ from datetime import date
 from typing import Optional, Sequence
 
 from pydantic import ValidationError
-from zino.config import InvalidConfigurationError, format_validation_error
+from zino.config import InvalidConfigurationError, format_validation_error, read_configuration
 
 from vwatcher.collect import Poller, load_backend
-from vwatcher.config import Configuration, read_configuration
+from vwatcher.config import Configuration
 from vwatcher.report import reports, send_report
 from vwatcher.store import LogTree
 
@@ -29,9 +29,7 @@ def vwatcher(argv: Optional[Sequence[str]] = None) -> int:
     parser = _parser("Monitor software versions and restarts of network devices")
     parser.add_argument("--polldevs", help="Override the pollfile named in the config file")
     args = _parse_args(parser, argv)
-    config = load_config(args)
-    if args.polldevs:
-        config.polling.file = args.polldevs
+    config = load_config(args, args.polldevs)
     _log.info("Watching %s, logging to %s", config.polling.file, config.log_directory)
     load_backend(config.snmp.backend)
     try:
@@ -120,7 +118,7 @@ def _parse_args(parser: argparse.ArgumentParser, argv: Optional[Sequence[str]]) 
     return args
 
 
-def load_config(args: argparse.Namespace) -> Configuration:
+def load_config(args: argparse.Namespace, poll_file_name: Optional[str] = None) -> Configuration:
     """
     Load the configuration file, exiting the process if there are config errors.
 
@@ -128,13 +126,15 @@ def load_config(args: argparse.Namespace) -> Configuration:
     """
     config_file = args.config_file or DEFAULT_CONFIG_FILE
     try:
-        return read_configuration(config_file)
+        config = read_configuration(config_file, poll_file_name, model=Configuration)
     except OSError as error:
         if args.config_file:
             _log.fatal("Could not read the config file %s: %s", config_file, error)
             sys.exit(1)
         _log.debug("No configuration file at %s, using the defaults", config_file)
-        return Configuration()
+        config = Configuration()
+        if poll_file_name:
+            config.polling.file = poll_file_name
     except InvalidConfigurationError as error:
         _log.fatal("Configuration file %s is not valid TOML: %s", config_file, error)
         sys.exit(1)
@@ -142,6 +142,8 @@ def load_config(args: argparse.Namespace) -> Configuration:
         # Zino's formatter names the offending key, and suggests a spelling
         _log.fatal("%s", "\n".join(format_validation_error(error, Configuration)))
         sys.exit(1)
+
+    return config
 
 
 def _print_report(build_report) -> int:

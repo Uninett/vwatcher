@@ -1,12 +1,10 @@
-"""Covers vwatcher configuration models, and reading them from `vwatcher.toml`"""
+"""Covers the vwatcher configuration model, read from `vwatcher.toml` by Zino's `read_configuration()`"""
 
 from pathlib import Path
-from tomllib import TOMLDecodeError, load
-from typing import Literal, Optional, Union
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
-from zino.config import InvalidConfigurationError
-from zino.config.models import Polling
+from zino.config.models import Polling, SchedulerConfiguration, SNMPBackendConfiguration
 
 LOG_DIRECTORY = "ver-watch/logs"
 # How far a device's uptime may lag the estimate before it counts as a restart.
@@ -37,23 +35,6 @@ class Mail(BaseModel):
     sendmail: str = "/usr/sbin/sendmail"
 
 
-class Scheduler(BaseModel):
-    """Scheduler tuning"""
-
-    model_config = ConfigDict(extra="forbid")
-
-    # How late a poll may fire before it is skipped instead, in seconds
-    misfire_grace_time: int = 10
-
-
-class Snmp(BaseModel):
-    """Which of Zino's SNMP backends to poll with"""
-
-    model_config = ConfigDict(extra="forbid")
-
-    backend: Literal["pysnmp", "netsnmp"] = "netsnmp"
-
-
 class Configuration(BaseModel):
     """Everything `vwatcher.toml` can set"""
 
@@ -63,19 +44,9 @@ class Configuration(BaseModel):
     logs: Logs = Logs()
     mail: Mail = Mail()
     polling: Polling = Polling()
-    scheduler: Scheduler = Scheduler()
-    snmp: Snmp = Snmp()
+    scheduler: SchedulerConfiguration = SchedulerConfiguration()
+    snmp: SNMPBackendConfiguration = SNMPBackendConfiguration()
 
     @property
     def log_directory(self) -> Path:
         return Path(self.logs.directory)
-
-
-def read_configuration(config_file: Union[str, Path]) -> Configuration:
-    """Read and validate a `vwatcher.toml`, defaulting whatever it leaves out"""
-    with open(config_file, "rb") as handle:
-        try:
-            settings = load(handle)
-        except TOMLDecodeError as error:
-            raise InvalidConfigurationError(str(error)) from error
-    return Configuration.model_validate(settings, strict=True)
